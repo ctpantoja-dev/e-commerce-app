@@ -1,3 +1,3 @@
 package com.ctpantoja.ecommerce.exception
 
-class CustomerNotFoundException(message: String) : RuntimeException(message)
+data class CustomerNotFoundException(override val message: String) : RuntimeException(message)
