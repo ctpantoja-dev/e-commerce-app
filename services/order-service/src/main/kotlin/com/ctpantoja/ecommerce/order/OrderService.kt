@@ -7,6 +7,8 @@ import com.ctpantoja.ecommerce.kafka.OrderConfirmation
 import com.ctpantoja.ecommerce.kafka.OrderProducer
 import com.ctpantoja.ecommerce.orderline.OrderLineRequest
 import com.ctpantoja.ecommerce.orderline.OrderLineService
+import com.ctpantoja.ecommerce.payment.PaymentClient
+import com.ctpantoja.ecommerce.payment.PaymentRequest
 import com.ctpantoja.ecommerce.product.ProductClient
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
@@ -18,7 +20,8 @@ class OrderService(
     val orderLineService: OrderLineService,
     val orderMapper: OrderMapper,
     val orderRepository: OrderRepository,
-    val orderProducer: OrderProducer
+    val orderProducer: OrderProducer,
+    val paymentClient: PaymentClient
 ) {
 
     fun createOrder(orderRequest: OrderRequest): Int {
@@ -40,6 +43,15 @@ class OrderService(
         }
 
         // TODO start payment process
+        paymentClient.requestOrderPayment(
+            PaymentRequest(
+                amount = order.totalAmount!!,
+                paymentMethod = order.paymentMethod!!,
+                orderReference = order.reference!!,
+                customer = customer,
+                orderId = order.id
+            )
+        )
 
         // TODO send the order confirmation --> call the notification service (kafka)
         orderProducer.sendOrderConfirmation(
